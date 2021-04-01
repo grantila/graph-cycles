@@ -10,6 +10,7 @@
 
 Analyze a graph to find cyclic loops, entrypoints to them and dependencies of them.
 
+*This package should not be used for very large graphs; graph analysis doesn't scale well.*
 
 ## Example
 
@@ -96,9 +97,8 @@ This example shows a few cycles. The last entry of a cycle always point to the f
 		[ 'd', 'e', 'f' ],
 	],
 	entrypoints: [
-		[ 'b', 'c' ],
-		[ 'a', 'c' ],
-		[ 'a', 'b', 'c' ],
+		[ 'a' ],
+		[ 'b' ],
 	],
 	dependencies: [ 'j', 'k', 'l' ],
 	all: [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ] // excl dependencies
