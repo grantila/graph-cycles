@@ -1,23 +1,28 @@
-import { equalArray, uniq, uniqArrays } from './util'
+import { arrayCompare, uniq, uniqArrays } from './util'
 
 
 describe( "utils", ( ) =>
 {
-	describe( "equalArray", ( ) =>
+	describe( "arrayCompare", ( ) =>
 	{
 		it( "should handle empty", ( ) =>
 		{
-			expect( equalArray( [ ], [ ] ) ).toBe( true );
+			expect( arrayCompare( [ ], [ ] ) ).toBe( 0 );
 		} );
 
 		it( "should handle different sizes", ( ) =>
 		{
-			expect( equalArray( [ 'a', 'b' ], [ 'a' ] ) ).toBe( false );
+			expect( arrayCompare( [ 'a', 'b' ], [ 'a' ] ) ).toBe( 1 );
+		} );
+
+		it( "should handle different sizes opposite", ( ) =>
+		{
+			expect( arrayCompare( [ 'a' ], [ 'a', 'b' ] ) ).toBe( -1 );
 		} );
 
 		it( "should handle equal", ( ) =>
 		{
-			expect( equalArray( [ 'a', 'b' ], [ 'a', 'b' ] ) ).toBe( true );
+			expect( arrayCompare( [ 'a', 'b' ], [ 'a', 'b' ] ) ).toBe( 0 );
 		} );
 	} );
 

@@ -2,19 +2,11 @@ import { ShortTree } from 'short-tree'
 import { RotatedArraySet } from 'rotated-array-set'
 
 import { uniq, uniqArrays } from './util'
+import { Graph, AnalysisResult } from './types'
 
+export * from './types'
+export { sortAnalysisResult } from './util'
 
-export type Edge = [ from: string, to: Array< string > ];
-
-export type Graph = Array< Edge >;
-
-export interface AnalysisResult
-{
-	cycles: Array< Array< string > >;
-	entrypoints: Array< Array< string > >;
-	dependencies: Array< string >;
-	all: Array< string >;
-}
 
 // Removes duplicate edges (they are ignored), and ensures single
 function buildAndEnsureValidGraph( edges: Graph )

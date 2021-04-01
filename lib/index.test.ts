@@ -1,34 +1,7 @@
-import { analyzeGraph, Graph } from './index'
+import { analyzeGraph} from './index'
+import { rotateArray, sortAnalysisResult } from './util'
+import { Graph } from './types'
 
-
-const sortArrays = ( arr: Array< Array< string > > ): typeof arr =>
-	[ ...arr ].sort( ( a, b ) =>
-	{
-		if ( a.length < b.length )
-			return -1;
-		else if ( a.length > b.length )
-			return 1;
-		else
-			return JSON.stringify( a ).localeCompare( JSON.stringify( b ) );
-	} );
-
-function rotateArray< T >( arr: Array< T >, offset: number ): Array< T >
-{
-	return [ ...arr.slice( offset ), ...arr.slice( 0, offset ) ];
-}
-
-function rotationSort( arr: Array< string > ): Array< string >
-{
-	const anchor = [ ...arr ].sort( )[ 0 ];
-	while ( arr[ 0 ] !== anchor )
-		arr = rotateArray( arr, 1 );
-	return arr;
-}
-
-function rotationSortArrays( arrays: Array< Array< string > > ): typeof arrays
-{
-	return arrays.map( arr => rotationSort( arr ) );
-}
 
 function makeRotationCombinations( graph: Graph )
 : Array< { graph: Graph, title: string } >
@@ -77,32 +50,29 @@ describe( "graph-cycles", ( ) =>
 	makeRotationCombinations( initialGraph ).forEach( ( { graph, title } ) =>
 		it( `should detect cycles properly: ${title}`, ( ) =>
 		{
-			const analysis = analyzeGraph( graph );
+			const analysis = sortAnalysisResult( analyzeGraph( graph ) );
 
-			const { cycles, entrypoints, dependencies, all } = analysis;
+			const { cycles, entrypoints, dependencies, all } =  analysis;
 
-			expect( rotationSortArrays( sortArrays( cycles ) ) )
-				.toStrictEqual(
-					rotationSortArrays( sortArrays( [
-						[ 'g' ],
-						[ 'c', 'd', 'h', 'i' ],
-						[ 'c', 'd', 'e', 'g', 'h', 'i' ],
-						[ 'd', 'e', 'f' ],
-					] ) )
-				);
+			const expected = sortAnalysisResult( {
+				cycles: [
+					[ 'g' ],
+					[ 'c', 'd', 'h', 'i' ],
+					[ 'c', 'd', 'e', 'g', 'h', 'i' ],
+					[ 'd', 'e', 'f' ],
+				],
+				entrypoints: [
+					[ 'a' ],
+					[ 'b' ],
+				],
+				dependencies: [ 'j', 'k', 'l' ],
+				all: [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ],
+			} );
 
-			expect( sortArrays( entrypoints ) ).toStrictEqual( sortArrays( [
-				[ 'a' ],
-				[ 'b' ],
-			] ) );
-
-			expect( [ ...dependencies ].sort( ) ).toStrictEqual(
-				[ 'j', 'k', 'l' ].sort( )
-			);
-
-			expect( [ ...all ].sort( ) ).toStrictEqual(
-				[ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ].sort( )
-			);
+			expect( cycles ).toStrictEqual( expected.cycles );
+			expect( entrypoints ).toStrictEqual( expected.entrypoints );
+			expect( dependencies ).toStrictEqual( expected.dependencies );
+			expect( all ).toStrictEqual( expected.all );
 		} )
 	);
 

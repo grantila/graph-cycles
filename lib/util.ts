@@ -1,4 +1,7 @@
-export function uniq( arr: Array< string > ): Array< string >
+import { AnalysisResult } from './types'
+
+
+export function uniq( arr: ReadonlyArray< string > ): Array< string >
 {
 	return [ ...new Set( arr ) ];
 }
@@ -10,7 +13,7 @@ export function uniqArrays( arrays: Array< Array< string > > ): typeof arrays
 	return arrays
 		.filter( array =>
 		{
-			const isKnown = known.some( arr => equalArray( arr, array ) );
+			const isKnown = known.some( arr => !arrayCompare( arr, array ) );
 			if ( isKnown )
 				return false;
 			known.push( array );
@@ -18,11 +21,60 @@ export function uniqArrays( arrays: Array< Array< string > > ): typeof arrays
 		} );
 }
 
-export function equalArray( a: Array< string >, b: Array< string > ): boolean
+export function arrayCompare( a: Array< string >, b: Array< string > ): number
 {
 	if ( a.length !== b.length )
-		return false;
+		return a.length > b.length ? 1 : -1;
 	else if ( a.length === 0 )
-		return true;
-	return !a.some( ( nodeA, i ) => nodeA !== b[ i ] );
+		return 0;
+	for ( let i = 0; i < a.length; ++i )
+	{
+		const diff = a[ i ].localeCompare( b[ i ] );
+		if ( diff !== 0 )
+			return diff;
+	}
+	return 0;
+}
+
+
+function sortArrays( arr: Array< Array< string > > ): typeof arr
+{
+	return [ ...arr ].sort( ( a, b ) =>
+	{
+		if ( a.length < b.length )
+			return -1;
+		else if ( a.length > b.length )
+			return 1;
+		else
+			return JSON.stringify( a ).localeCompare( JSON.stringify( b ) );
+	} );
+}
+
+export function rotateArray< T >( arr: ReadonlyArray< T >, offset: number )
+: Array< T >
+{
+	return [ ...arr.slice( offset ), ...arr.slice( 0, offset ) ];
+}
+
+function rotationSort( arr: ReadonlyArray< string > ): Array< string >
+{
+	const anchor = [ ...arr ].sort( )[ 0 ];
+	while ( arr[ 0 ] !== anchor )
+		arr = rotateArray( arr, 1 );
+	return [ ...arr ];
+}
+
+function rotationSortArrays( arrays: Array< Array< string > > ): typeof arrays
+{
+	return arrays.map( arr => rotationSort( arr ) );
+}
+
+export function sortAnalysisResult( result: AnalysisResult ): AnalysisResult
+{
+	return {
+		cycles: sortArrays( rotationSortArrays( result.cycles ) ),
+		entrypoints: sortArrays( result.entrypoints ),
+		dependencies: [ ...result.dependencies ].sort( ),
+		all: [ ...result.all ].sort( ),
+	};
 }

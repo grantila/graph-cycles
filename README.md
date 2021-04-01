@@ -14,7 +14,7 @@ Analyze a graph to find cyclic loops, entrypoints to them and dependencies of th
 
 ## Example
 
-The one and only function `analyzeGraph` takes a list of `[ from, [ ...to ] ]` pairs and returns the graph analysis.
+`graph-cycles` exports a function `analyzeGraph` that takes a list of `[ from, [ ...to ] ]` pairs and returns the graph analysis.
 
 ```ts
 import { analyzeGraph } from 'graph-cycles'
@@ -104,6 +104,11 @@ This example shows a few cycles. The last entry of a cycle always point to the f
 	all: [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ] // excl dependencies
 }
 ```
+
+
+## Utilities
+
+The package exports a helper function `sortAnalysisResult` which takes a result object (of type `AnalysisResult`) and returns a new one with all values sorted. This helps when writing tests where both the *received* and *expected* values can be sorted deterministically.
 
 
 
