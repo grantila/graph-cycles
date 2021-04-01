@@ -1,4 +1,8 @@
-import { equalArray, equalRotatedArrays, uniq, uniqArrays } from './util'
+import { ShortTree } from 'short-tree'
+import { RotatedArraySet } from 'rotated-array-set'
+
+import { uniq, uniqArrays } from './util'
+
 
 export type Edge = [ from: string, to: Array< string > ];
 
@@ -26,38 +30,28 @@ function buildAndEnsureValidGraph( edges: Graph )
 	return new Map( edges.map( ( [ from, to ] ) => [ from, uniq( to ) ] ) );
 }
 
-export function analyzeGraph( graph: Graph )
-: AnalysisResult
+const stringCmp = ( a: string, b: string ) => a.localeCompare( b );
+
+export function analyzeGraph( graph: Graph ): AnalysisResult
 {
 	const graphMap = buildAndEnsureValidGraph( graph );
 
-	const entrypoints: Array< Array< string > > = [ ];
+	const entrypoints = new ShortTree( stringCmp );
 	const cycleNodes = new Set< string >( );
-	const cycles: Array< Array< string > > = [ ];
+	const cycles = new RotatedArraySet< string >( );
 	const dependencies = new Set< string >( );
 
 	const recordCycleEntrypoint = ( path: Array< string > ) =>
 	{
-		path = [ ...path ];
-		while ( path.length > 1 )
-		{
-			if (
-				entrypoints.some( entrypoint =>
-					equalArray( entrypoint, path )
-				)
-			)
-				return;
-
-			entrypoints.push( path );
-			path = path.slice( 1 );
-		}
+		if ( path.length === 0 )
+			return;
+		entrypoints.insert( path );
 	};
 
 	const recordCycle = ( path: Array< string > ) =>
 	{
-		if ( !cycles.some( cycle => equalRotatedArrays( cycle, path ) ) )
+		if ( cycles.add( path ) )
 		{
-			cycles.push( [ ...path ] );
 			for ( const node of path )
 				cycleNodes.add( node );
 		}
@@ -68,7 +62,6 @@ export function analyzeGraph( graph: Graph )
 	// Traverse from each possible entrypoint
 	for ( const [ from, _to ] of graphMap.entries( ) )
 	{
-		console.log("analyzing", from)
 		const path = [ from ];
 		const visisted = new Set< string >( );
 		let foundCycle = false;
@@ -89,7 +82,7 @@ export function analyzeGraph( graph: Graph )
 
 			if ( !createdCycle && isPartOfCycle( node ) )
 			{
-				recordCycleEntrypoint( path );
+				recordCycleEntrypoint( path.slice( 0, -1 ) );
 				foundCycle = true;
 				return true;
 			}
@@ -105,7 +98,7 @@ export function analyzeGraph( graph: Graph )
 				// Only record entrypoints if there's at least one node
 				// *before* the cycle begins
 				if ( entrypointPath.length > 1 )
-					recordCycleEntrypoint( entrypointPath );
+					recordCycleEntrypoint( entrypointPath.slice( 0, -1 ) );
 
 				const cycle = path.slice( path.indexOf( node ), -1 );
 
@@ -155,12 +148,6 @@ export function analyzeGraph( graph: Graph )
 
 		while ( true )
 		{
-			console.log({
-				entrypoints: entrypoints.length,
-				cycleNodes: cycleNodes.size,
-				cycles: cycles.length,
-				dependencies: dependencies.size,
-			});
 			if ( testNode( ) )
 			{
 				if ( walkUp( ) )
@@ -201,26 +188,26 @@ export function analyzeGraph( graph: Graph )
 	// There might be cycles found as part of an entrypoint *after* the
 	// entrypoint was detected. Chop them off at the time of entering a cycle.
 	const trimmedEntrypoints = uniqArrays(
-		entrypoints
+		entrypoints.values( )
 		.map( path =>
 		{
-			for ( let i = 0; i < path.length - 1; ++i )
+			for ( let i = 0; i < path.length; ++i )
 			{
 				if ( isPartOfCycle( path[ i ] ) )
 				{
-					path = path.slice( 0, i + 1 );
+					path = path.slice( 0, i );
 					break;
 				}
 			}
 			return path;
 		} )
-		.filter( path => path.length > 1 )
+		.filter( path => path.length > 0 )
 	);
 
 	const all = new Set( [ ...cycleNodes, ...trimmedEntrypoints.flat( ) ] );
 
 	return {
-		cycles,
+		cycles: cycles.values( ),
 		entrypoints: trimmedEntrypoints,
 		dependencies: [ ...dependencies ].filter( dep => !all.has( dep ) ),
 		all: [ ...all ],

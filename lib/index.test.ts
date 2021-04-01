@@ -92,9 +92,8 @@ describe( "graph-cycles", ( ) =>
 				);
 
 			expect( sortArrays( entrypoints ) ).toStrictEqual( sortArrays( [
-				[ 'b', 'c' ],
-				[ 'a', 'b', 'c' ],
-				[ 'a', 'c' ],
+				[ 'a' ],
+				[ 'b' ],
 			] ) );
 
 			expect( [ ...dependencies ].sort( ) ).toStrictEqual(

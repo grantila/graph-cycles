@@ -1,6 +1,6 @@
-import { equalArray, equalRotatedArrays, uniq, uniqArrays } from './util'
+import { equalArray, uniq, uniqArrays } from './util'
 
-equalArray; equalRotatedArrays; uniq; uniqArrays;
+
 describe( "utils", ( ) =>
 {
 	describe( "equalArray", ( ) =>
@@ -18,51 +18,6 @@ describe( "utils", ( ) =>
 		it( "should handle equal", ( ) =>
 		{
 			expect( equalArray( [ 'a', 'b' ], [ 'a', 'b' ] ) ).toBe( true );
-		} );
-	} );
-
-	describe( "equalRotatedArrays", ( ) =>
-	{
-		it( "should handle empty", ( ) =>
-		{
-			expect( equalRotatedArrays( [ ], [ ] ) ).toBe( true );
-		} );
-
-		it( "should handle different sizes", ( ) =>
-		{
-			expect( equalRotatedArrays( [ 'a', 'b' ], [ 'a' ] ) ).toBe( false );
-		} );
-
-		it( "should handle equal unrotated", ( ) =>
-		{
-			expect( equalRotatedArrays(
-				[ 'a', 'b', 'c' ],
-				[ 'a', 'b', 'c' ]
-			) ).toBe( true );
-		} );
-
-		it( "should handle equal rotated", ( ) =>
-		{
-			expect( equalRotatedArrays(
-				[ 'a', 'b', 'c' ],
-				[ 'b', 'c', 'a' ]
-			) ).toBe( true );
-		} );
-
-		it( "should handle similar but non-equal", ( ) =>
-		{
-			expect( equalRotatedArrays(
-				[ 'a', 'b', 'c' ],
-				[ 'a', 'c', 'b' ]
-			) ).toBe( false );
-		} );
-
-		it( "should handle different", ( ) =>
-		{
-			expect( equalRotatedArrays(
-				[ 'a', 'b', 'c' ],
-				[ 'x', 'y', 'z' ]
-			) ).toBe( false );
 		} );
 	} );
 
