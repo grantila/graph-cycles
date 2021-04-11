@@ -1,6 +1,13 @@
-import { analyzeGraph} from './index'
-import { rotateArray, sortAnalysisResult } from './util'
-import { Graph } from './types'
+import * as path from 'path'
+
+import { analyzeGraph, analyzeGraphFast } from './index'
+import { rotateArray, sortFastAnalysisResult, sortFullAnalysisResult } from './util'
+import { FastAnalysisResult, FullAnalysisResult, Graph } from './types'
+
+
+const fixtureDir = path.resolve( __dirname, '..', 'fixtures' );
+const largeGraph = require( `${fixtureDir}/large-graph.json` );
+const mediumGraph = require( `${fixtureDir}/medium-graph.json` );
 
 
 function makeRotationCombinations( graph: Graph )
@@ -42,6 +49,7 @@ describe( "graph-cycles", ( ) =>
 		[ 'i', [ 'c' ] ],
 		[ 'j', [ ] ],
 		[ 'k', [ 'l' ] ],
+		[ 'm', [ 'l' ] ],
 		[ 'l', [ ] ],
 		[ 'x', [ 'y' ] ],
 		[ 'z', [ 'x', 'y' ] ],
@@ -50,11 +58,12 @@ describe( "graph-cycles", ( ) =>
 	makeRotationCombinations( initialGraph ).forEach( ( { graph, title } ) =>
 		it( `should detect cycles properly: ${title}`, ( ) =>
 		{
-			const analysis = sortAnalysisResult( analyzeGraph( graph ) );
+			const analysis = sortFullAnalysisResult( analyzeGraph( graph ) );
 
-			const { cycles, entrypoints, dependencies, all } =  analysis;
+			const { cycles, entrypoints, dependencies, dependents, all } =
+				analysis;
 
-			const expected = sortAnalysisResult( {
+			const expected = sortFullAnalysisResult( {
 				cycles: [
 					[ 'g' ],
 					[ 'c', 'd', 'h', 'i' ],
@@ -66,13 +75,35 @@ describe( "graph-cycles", ( ) =>
 					[ 'b' ],
 				],
 				dependencies: [ 'j', 'k', 'l' ],
+				dependents: [ 'm' ],
 				all: [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ],
 			} );
 
 			expect( cycles ).toStrictEqual( expected.cycles );
 			expect( entrypoints ).toStrictEqual( expected.entrypoints );
 			expect( dependencies ).toStrictEqual( expected.dependencies );
+			expect( dependents ).toStrictEqual( expected.dependents );
 			expect( all ).toStrictEqual( expected.all );
+		} )
+	);
+
+	makeRotationCombinations( initialGraph ).forEach( ( { graph, title } ) =>
+		it( `should detect cycles properly (fast mode): ${title}`, ( ) =>
+		{
+			const analysis = sortFastAnalysisResult(
+				analyzeGraphFast( graph )
+			);
+
+			const { cyclic, dependencies } = analysis;
+
+			const expected = sortFastAnalysisResult( {
+				cyclic: [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ],
+				dependencies: [ 'j', 'k', 'l' ],
+				dependents: [ 'm' ],
+			} );
+
+			expect( cyclic ).toStrictEqual( expected.cyclic );
+			expect( dependencies ).toStrictEqual( expected.dependencies );
 		} )
 	);
 
@@ -81,4 +112,125 @@ describe( "graph-cycles", ( ) =>
 		expect( ( ) => analyzeGraph( [ [ 'a', [ ] ], [ 'a', [ ] ] ] ) )
 			.toThrowError( /duplicat/i );
 	} );
+
+	it( "should handle simple self-cycle (full mode)", ( ) =>
+	{
+		const analysis = sortFullAnalysisResult(
+			analyzeGraph(
+				[
+					[ 'a', [ 'b' ] ],
+					[ 'b', [ 'b', 'c' ] ],
+					[ 'c', [ ] ],
+					[ 'd', [ 'c' ] ]
+				]
+			)
+		);
+		const { cycles, entrypoints, dependencies, dependents, all } =
+			analysis;
+
+		expect( cycles ).toStrictEqual( [ [ 'b' ] ] );
+		expect( entrypoints ).toStrictEqual( [ [ 'a' ] ] );
+		expect( dependencies ).toStrictEqual( [ 'c' ] );
+		expect( dependents ).toStrictEqual( [ 'd' ] );
+		expect( all ).toStrictEqual( [ 'a', 'b' ] );
+	} );
+
+	it( "should handle simple self-cycle (fast mode)", ( ) =>
+	{
+		const analysis = sortFastAnalysisResult(
+			analyzeGraphFast(
+				[
+					[ 'a', [ 'b' ] ],
+					[ 'b', [ 'b', 'c' ] ],
+					[ 'c', [ ] ],
+				]
+			)
+		);
+		const { cyclic, dependencies, dependents } = analysis;
+
+		expect( cyclic ).toStrictEqual( [ 'a', 'b' ] );
+		expect( dependencies ).toStrictEqual( [ 'c' ] );
+		expect( dependents ).toStrictEqual( [ ] );
+	} );
+
+	it( "should handle simple diamond (fast mode)", ( ) =>
+	{
+		const analysis = sortFastAnalysisResult(
+			analyzeGraphFast(
+				[
+					[ 'a', [ 'b', 'c' ] ],
+					[ 'b', [ 'd' ] ],
+					[ 'c', [ 'd'] ],
+				]
+			)
+		);
+		const { cyclic, dependencies, dependents } = analysis;
+
+		expect( cyclic ).toStrictEqual( [  ] );
+		expect( dependencies ).toStrictEqual( [ ] );
+		expect( dependents ).toStrictEqual( [ ] );
+	} );
+} );
+
+describe( "medium graph (full mode)", ( ) =>
+{
+	let analysis: FullAnalysisResult;
+
+	it( "should handle medium graph", ( ) =>
+	{
+		analysis = sortFullAnalysisResult( analyzeGraph( mediumGraph ) );
+		expect( analysis ).toMatchSnapshot( );
+	} );
+
+	makeRotationCombinations( mediumGraph ).forEach( ( { graph, title } ) =>
+		it( `should handle medium graph: ${title}`, ( ) =>
+		{
+			const largeAnalysis = sortFullAnalysisResult(
+				analyzeGraph( graph )
+			);
+			expect( largeAnalysis ).toStrictEqual( analysis );
+		} )
+	);
+} );
+
+describe( "medium graph (fast mode)", ( ) =>
+{
+	let analysis: FastAnalysisResult;
+
+	it( "should handle medium graph (base case)", ( ) =>
+	{
+		analysis = sortFastAnalysisResult( analyzeGraphFast( mediumGraph ) );
+		expect( analysis ).toMatchSnapshot( );
+	} );
+
+	makeRotationCombinations( mediumGraph ).forEach( ( { graph, title } ) =>
+		it( `should handle medium graph: ${title}`, ( ) =>
+		{
+			const largeAnalysis = sortFastAnalysisResult(
+				analyzeGraphFast( graph )
+			);
+			expect( largeAnalysis ).toStrictEqual( analysis );
+		} )
+	);
+} );
+
+describe( "large graph (fast mode)", ( ) =>
+{
+	let analysis: FastAnalysisResult;
+
+	it( "should handle large graph", ( ) =>
+	{
+		analysis = sortFastAnalysisResult( analyzeGraphFast( largeGraph ) );
+		expect( analysis ).toMatchSnapshot( );
+	} );
+
+	makeRotationCombinations( largeGraph ).forEach( ( { graph, title } ) =>
+		it( `should handle large graph: ${title}`, ( ) =>
+		{
+			const largeAnalysis = sortFastAnalysisResult(
+				analyzeGraphFast( graph )
+			);
+			expect( largeAnalysis ).toStrictEqual( analysis );
+		} )
+	);
 } );

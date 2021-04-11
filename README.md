@@ -10,49 +10,33 @@
 
 Analyze a graph to find cyclic loops, entrypoints to them and dependencies of them.
 
-*This package should not be used for very large graphs; graph analysis doesn't scale well.*
+This package provides two analysis functions, `analyzeGraph` and `analyzeGraphFast`. Beware of the former for very large graphs, especially with massive cyclicity, it can run out of memory or crash your Node process (if you run in Node). If in doubt, or if an in-depth analysis isn't necessary, choose the fast method.
+
 
 ## Example
 
-`graph-cycles` exports a function `analyzeGraph` that takes a list of `[ from, [ ...to ] ]` pairs and returns the graph analysis.
+Consider the following graph:
 
 ```ts
-import { analyzeGraph } from 'graph-cycles'
-
-const analysis = analyzeGraph( [
-	[ 'a', [ 'b', 'c' ] ],
-	[ 'b', [ 'c', 'j' ] ],
-	[ 'c', [ 'd' ] ],
-	[ 'd', [ 'e', 'h' ] ],
-	[ 'e', [ 'f', 'g' ] ],
-	[ 'f', [ 'd', 'j' ] ],
-	[ 'g', [ 'g', 'h' ] ],
-	[ 'h', [ 'i' ] ],
-	[ 'i', [ 'c' ] ],
-	[ 'j', [ ']' ] ],
- 	[ 'k', [ 'l' ] ],
-	[ 'l', [ ']' ] ],
-	[ 'x', [ 'y' ] ],
-	[ 'z', [ 'x', 'y' ] ],
-] );
-
-const { cycles, entrypoints, dependencies, all } = analysis;
+const graph = [
+    [ 'a', [ 'b', 'c' ] ],
+    [ 'b', [ 'c', 'j' ] ],
+    [ 'c', [ 'd' ] ],
+    [ 'd', [ 'e', 'h' ] ],
+    [ 'e', [ 'f', 'g' ] ],
+    [ 'f', [ 'd', 'j' ] ],
+    [ 'g', [ 'g', 'h' ] ],
+    [ 'h', [ 'i' ] ],
+    [ 'i', [ 'c' ] ],
+    [ 'j', [ ']' ] ],
+    [ 'k', [ 'l' ] ],
+    [ 'l', [ ']' ] ],
+    [ 'x', [ 'y' ] ],
+    [ 'z', [ 'x', 'y' ] ],
+];
 ```
 
-The result object is on the form:
-
-```ts
-interface AnalysisResult {
-	cycles: Array< Array< string > >;
-	entrypoints: Array< Array< string > >;
-	dependencies: Array< string >;
-	all: Array< string >;
-}
-```
-
-where `cycles` is an array of the cyclic loops, `entrypoints` the entrypoints (or entrypoint *paths*) which lead to a cyclic loop, `dependencies` is the nodes cyclic nodes *depend on*, and `all` is all individual nodes which either lead to a cyclic loop (entrypoints) or are in one (excluding dependencies).
-
-Example graph (as in the example above):
+In this example, node `a` points to `b` and `c`; `b` points to `c` and `j`, etc. This can be drawn as:
 
 <!-- ←→↑↓ ⬊⬈⬉⬋ -->
 
@@ -70,14 +54,15 @@ i → { c }
 j → { }
 k → { l }
 l → { }
-// These will be found to not be cyclic:
+m → { l }
+// These will be found not to be cyclic (and not returned by the analysis):
 x → { y }
 z → { x y }
 
 Cyclic cluster:
                   ⬈ ⬊
-    j   i ← h ← g ← ⬋
-    ↑   ↓   ↑   ↑
+    j   i ← h ← g ← ⬋       m
+    ↑   ↓   ↑   ↑           ↓
 a → b → c → d → e → f → k → l
  ⬊ ___ ⬈     ⬉ ___ ⬋
 
@@ -86,29 +71,92 @@ z → x → y
  ⬊ ___ ⬈
 ```
 
-This example shows a few cycles. The last entry of a cycle always point to the first entry, and is excluded in the cycle array. Cycles are only returned once with an arbitrary node as a starting point. The returned object contains all unique cycles, all entrypoints (node paths *into* a cycle), and then all individual nodes being cyclic. `j`, `k` and `l` are not cyclic, but are a dependencies of cyclic nodes.
+This example shows a few cycles.
+
+In the full analysis (`analyzeGraph`), the last entry of a cycle always point to the first entry, and is excluded in the cycle array. Cycles are only returned once with an arbitrary node as a starting point. The returned object contains all unique cycles, all entrypoints (node paths *into* a cycle), and then all individual nodes being cyclic. `j`, `k` and `l` are not cyclic, but are a dependencies of cyclic nodes. `m` is not cyclic either, but depends on a node which cyclic nodes also depend on.
+
+
+# API
+
+`analyzeGraph` and `analyzeGraphFast` take a list of `[ from, [ ...to ] ]` pairs and return the graph analysis.
+
+
+## Full analysis mode
+
+
+
+
+```ts
+import { analyzeGraph } from 'graph-cycles'
+
+const analysis = analyzeGraph( graph ); // <graph> from above
+
+const { cycles, entrypoints, dependencies, dependents, all } = analysis;
+```
+
+The result object is on the form:
+
+```ts
+interface FullAnalysisResult {
+    cycles: Array< Array< string > >;
+    entrypoints: Array< Array< string > >;
+    dependencies: Array< string >;
+    dependents: Array< string >;
+    all: Array< string >;
+}
+```
+
+where `cycles` is an array of the cyclic loops, `entrypoints` the entrypoints (or entrypoint *paths*) which lead to a cyclic loop, `dependencies` is the nodes cyclic nodes *depend on*, and `dependents` are non-cyclic nodes depending on dependencies also dependent on by cyclic nodes. And `all` is all individual nodes which either lead to a cyclic loop (entrypoints) or are in one (excluding dependencies and dependents). `all` is all nodes *being* cyclic or *leading up to* cycles.
+
+For the example above, the result would be:
 
 ```ts
 {
-	cycles: [
-		[ 'g' ], // g cycles itself
-		[ 'c', 'd', 'h', 'i' ], // and then back to c...
-		[ 'c', 'd', 'e', 'g', 'h', 'i' ],
-		[ 'd', 'e', 'f' ],
-	],
-	entrypoints: [
-		[ 'a' ],
-		[ 'b' ],
-	],
-	dependencies: [ 'j', 'k', 'l' ],
-	all: [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ] // excl dependencies
+    cycles: [
+        [ 'g' ], // g cycles itself
+        [ 'c', 'd', 'h', 'i' ], // and then back to c...
+        [ 'c', 'd', 'e', 'g', 'h', 'i' ],
+        [ 'd', 'e', 'f' ],
+    ],
+    entrypoints: [
+        [ 'a' ],
+        [ 'b' ],
+    ],
+    dependencies: [ 'j', 'k', 'l' ],
+    dependents: [ 'm' ],
+    all: [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ] // excl dependencies
+}
+```
+
+## Fast analysis mode
+
+In the fast mode (`analyzeGraphFast`), entrypoints and cycles are merged into `cycles` and there's no concept of individual (unique) cycles; instead `cycles` is an array of all cyclic (or *leading up to* cyclic) nodes. This is the same as `all` in the full analysis mode.
+
+The result object is on the form:
+
+```ts
+interface FastAnalysisResult
+{
+    cyclic: Array< string >;
+    dependencies: Array< string >;
+    dependents: Array< string >;
 }
 ```
 
 
 ## Utilities
 
-The package exports a helper function `sortAnalysisResult` which takes a result object (of type `AnalysisResult`) and returns a new one with all values sorted. This helps when writing tests where both the *received* and *expected* values can be sorted deterministically.
+The package exports two helper functions `sortFullAnalysisResult`, `sortFastAnalysisResult` which take a result object (of type `FullAnalysisResult` or `FastAnalysisResult`) and return a new one with all values sorted. This helps when writing tests where both the *received* and *expected* values can be sorted deterministically. The sort order is deterministic but not respecting locale, as it's using [`fast-string-compare`](https://github.com/grantila/fast-string-compare) to be fast.
+
+Example:
+
+```ts
+import { analyzeGraphFast, sortFastAnalysisResult } from 'graph-cycles'
+
+const analysis = sortFastAnalysisResult( analyzeGraphFast( graph ) );
+
+// analysis can now be used for e.g. snapshots - its content is "stable"
+```
 
 
 

@@ -49,6 +49,7 @@
     }
   },
   "dependencies": {
+    "fast-string-compare": "^1.0.0",
     "rotated-array-set": "^1.0.0",
     "short-tree": "^1.0.0"
   }
