@@ -161,13 +161,10 @@ export function analyzeGraph( graph: Graph )
 			if ( walkDown( ) )
 				continue;
 
-			if ( to.length === 0 )
-			{
-				// Save path up to this exitpoint.
-				// If the path along the way here was part of a cycle, its
-				// detection will mark this exitpoint as a dependence.
-				exitPaths.push( [ ...path ] );
-			}
+			// Save path up to this exitpoint.
+			// If the path along the way here was part of a cycle, its
+			// detection will mark this exitpoint as a dependence.
+			exitPaths.push( [ ...path ] );
 
 			if ( walkUp( ) )
 				break;
@@ -349,13 +346,10 @@ export function analyzeGraphFast( graph: Graph ): FastAnalysisResult
 			if ( walkDown( ) )
 				continue;
 
-			if ( to.length === 0 )
-			{
-				// Save path up to this exitpoint.
-				// If the path along the way here was part of a cycle, its
-				// detection will mark this exitpoint as a dependence.
-				exitPaths.push( [ ...path ] );
-			}
+			// Save path up to this exitpoint.
+			// If the path along the way here was part of a cycle, its
+			// detection will mark this exitpoint as a dependence.
+			exitPaths.push( [ ...path ] );
 
 			if ( walkUp( ) )
 				break;
