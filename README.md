@@ -83,9 +83,6 @@ In the full analysis (`analyzeGraph`), the last entry of a cycle always point to
 
 ## Full analysis mode
 
-
-
-
 ```ts
 import { analyzeGraph } from 'graph-cycles'
 
@@ -130,7 +127,13 @@ For the example above, the result would be:
 
 ## Fast analysis mode
 
-In the fast mode (`analyzeGraphFast`), entrypoints and cycles are merged into `cycles` and there's no concept of individual (unique) cycles; instead `cycles` is an array of all cyclic (or *leading up to* cyclic) nodes. This is the same as `all` in the full analysis mode.
+```ts
+import { analyzeGraphFast } from 'graph-cycles'
+
+const analysis = analyzeGraphFast( graph ); // <graph> from above
+
+const { cyclic, dependencies, dependents } = analysis;
+```
 
 The result object is on the form:
 
@@ -140,6 +143,18 @@ interface FastAnalysisResult
     cyclic: Array< string >;
     dependencies: Array< string >;
     dependents: Array< string >;
+}
+```
+
+In the fast mode (`analyzeGraphFast`), entrypoints and cycles are merged into `cycles` and there's no concept of individual (unique) cycles; instead `cyclic` is an array of all cyclic (or *leading up to* cyclic) nodes. This is the same as `all` in the full analysis mode.
+
+For the example above, the result would be:
+
+```ts
+{
+    cyclic: [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ],
+    dependencies: [ 'j', 'k', 'l' ],
+    dependents: [ 'm' ]
 }
 ```
 
