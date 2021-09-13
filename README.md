@@ -13,6 +13,11 @@ Analyze a graph to find cyclic loops, entrypoints to them and dependencies of th
 This package provides two analysis functions, `analyzeGraph` and `analyzeGraphFast`. Beware of the former for very large graphs, especially with massive cyclicity, it can run out of memory or crash your Node process (if you run in Node). If in doubt, or if an in-depth analysis isn't necessary, choose the fast method.
 
 
+## Versions
+
+ * Since v2 this is a [pure ESM][pure-esm] package, and requires Node.js >=12.20. It cannot be used from CommonJS.
+
+
 ## Example
 
 Consider the following graph:
@@ -186,3 +191,4 @@ const analysis = sortFastAnalysisResult( analyzeGraphFast( graph ) );
 [lgtm-url]: https://lgtm.com/projects/g/grantila/graph-cycles/context:javascript
 [node-version]: https://img.shields.io/node/v/graph-cycles
 [node-url]: https://nodejs.org/en/
+[pure-esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c

@@ -1,13 +1,21 @@
-import * as path from 'path'
+import { fileURLToPath } from 'node:url'
+import * as path from 'node:path'
+import { readFileSync } from 'node:fs'
 
 import { analyzeGraph, analyzeGraphFast } from './index'
 import { rotateArray, sortFastAnalysisResult, sortFullAnalysisResult } from './util'
 import { FastAnalysisResult, FullAnalysisResult, Graph } from './types'
 
 
+// @ts-ignore
+const __dirname = path.dirname( fileURLToPath( import.meta.url ) );
 const fixtureDir = path.resolve( __dirname, '..', 'fixtures' );
-const largeGraph = require( `${fixtureDir}/large-graph.json` );
-const mediumGraph = require( `${fixtureDir}/medium-graph.json` );
+const largeGraph = JSON.parse(
+	readFileSync( `${fixtureDir}/large-graph.json`, 'utf-8' )
+);
+const mediumGraph = JSON.parse(
+	readFileSync( `${fixtureDir}/medium-graph.json`, 'utf-8' )
+);
 
 
 function makeRotationCombinations( graph: Graph )
