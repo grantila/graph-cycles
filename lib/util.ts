@@ -1,6 +1,6 @@
 import { compare } from 'fast-string-compare'
 
-import { FullAnalysisResult, FastAnalysisResult } from './types'
+import { FullAnalysisResult, FastAnalysisResult } from './types.js'
 
 
 export function uniq( arr: ReadonlyArray< string > ): Array< string >

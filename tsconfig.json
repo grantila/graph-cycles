@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"allowJs": false,
+		"allowJs": true,
 		"declaration": true,
 		"sourceMap": true,
 		"lib": [ "ES2019" ],

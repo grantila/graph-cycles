@@ -36,15 +36,16 @@
     "recursive"
   ],
   "devDependencies": {
-    "@babel/preset-env": "^7.15.6",
-    "@babel/preset-typescript": "^7.15.0",
-    "@types/jest": "^27.0.1",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-typescript": "^7.16.5",
+    "@types/jest": "^27.0.3",
     "@types/node": "^16.9.1",
     "cz-conventional-changelog": "^3.1.0",
-    "jest": "^27.1.1",
+    "jest": "^27.4.5",
     "rimraf": "^3.0.1",
-    "ts-node": "^10.2.1",
-    "typescript": "^4.4.3"
+    "ts-jest-resolver": "^2.0.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
   },
   "config": {
     "commitizen": {
@@ -57,12 +58,15 @@
     "short-tree": "^2.0.0"
   },
   "jest": {
+    "resolver": "ts-jest-resolver",
     "testEnvironment": "node",
     "coverageReporters": [
       "lcov",
       "text",
       "html"
     ],
-    "extensionsToTreatAsEsm": [ ".ts" ]
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ]
   }
 }

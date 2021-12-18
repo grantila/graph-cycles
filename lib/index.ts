@@ -2,15 +2,15 @@ import { ShortTree } from 'short-tree'
 import { RotatedArraySet } from 'rotated-array-set'
 import { compare } from 'fast-string-compare'
 
-import { uniq, uniqArrays } from './util'
+import { uniq, uniqArrays } from './util.js'
 import {
 	Graph,
 	FullAnalysisResult,
 	FastAnalysisResult,
-} from './types'
+} from './types.js'
 
-export * from './types'
-export { sortFullAnalysisResult, sortFastAnalysisResult } from './util'
+export * from './types.js'
+export { sortFullAnalysisResult, sortFastAnalysisResult } from './util.js'
 
 
 // Removes duplicate edges (they are ignored), and ensures single
