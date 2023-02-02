@@ -2,7 +2,6 @@
 [![downloads][downloads-image]][npm-url]
 [![build status][build-image]][build-url]
 [![coverage status][coverage-image]][coverage-url]
-[![Language grade: JavaScript][lgtm-image]][lgtm-url]
 [![Node.JS version][node-version]][node-url]
 
 
@@ -183,12 +182,10 @@ const analysis = sortFastAnalysisResult( analyzeGraphFast( graph ) );
 [npm-image]: https://img.shields.io/npm/v/graph-cycles.svg
 [npm-url]: https://npmjs.org/package/graph-cycles
 [downloads-image]: https://img.shields.io/npm/dm/graph-cycles.svg
-[build-image]: https://img.shields.io/github/workflow/status/grantila/graph-cycles/Master.svg
+[build-image]: https://img.shields.io/github/actions/workflow/status/grantila/graph-cycles/master.yml?branch=master
 [build-url]: https://github.com/grantila/graph-cycles/actions?query=workflow%3AMaster
 [coverage-image]: https://coveralls.io/repos/github/grantila/graph-cycles/badge.svg?branch=master
 [coverage-url]: https://coveralls.io/github/grantila/graph-cycles?branch=master
-[lgtm-image]: https://img.shields.io/lgtm/grade/javascript/g/grantila/graph-cycles.svg?logo=lgtm&logoWidth=18
-[lgtm-url]: https://lgtm.com/projects/g/grantila/graph-cycles/context:javascript
 [node-version]: https://img.shields.io/node/v/graph-cycles
 [node-url]: https://nodejs.org/en/
 [pure-esm]: https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c
